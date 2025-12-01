@@ -747,7 +747,7 @@ class DescribeBubbleSeriesData(object):
     def it_can_add_a_data_point(self, add_data_point_fixture):
         series_data, x, y, size, BubbleDataPoint_, data_point_ = add_data_point_fixture
         data_point = series_data.add_data_point(x, y, size)
-        BubbleDataPoint_.assert_called_once_with(series_data, x, y, size, None)
+        BubbleDataPoint_.assert_called_once_with(series_data, x, y, size, None, None)
         assert series_data[-1] is data_point_
         assert data_point is data_point_
 
@@ -782,7 +782,7 @@ class DescribeXySeriesData(object):
     def it_can_add_a_data_point(self, add_data_point_fixture):
         series_data, x, y, XyDataPoint_, data_point_ = add_data_point_fixture
         data_point = series_data.add_data_point(x, y)
-        XyDataPoint_.assert_called_once_with(series_data, x, y, None)
+        XyDataPoint_.assert_called_once_with(series_data, x, y, None, None)
         assert series_data[-1] is data_point_
         assert data_point is data_point_
 

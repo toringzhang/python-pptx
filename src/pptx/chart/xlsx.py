@@ -217,6 +217,23 @@ class XyWorkbookWriter(_BaseWorkbookWriter):
         bottom_row = top_row + len(series) - 1
         return "Sheet1!$B$%d:$B$%d" % (top_row, bottom_row)
 
+    def labels_ref(self, series):
+        """
+        The Excel worksheet reference to the Labels for this chart (not
+        including the column label).
+        """
+        top_row = self.series_table_row_offset(series) + 2
+        bottom_row = top_row + len(series) - 1
+        return "Sheet1!$C$%d:$C$%d" % (top_row, bottom_row)
+
+    def label_cell_ref(self, series, idx):
+        """
+        The Excel worksheet reference to the label cell for the data point at
+        *idx* in *series*.
+        """
+        row = self.series_table_row_offset(series) + 2 + idx
+        return "Sheet1!$C$%d" % row
+
     def _populate_worksheet(self, workbook, worksheet):
         """
         Write chart data contents to *worksheet* in the standard XY chart
@@ -233,6 +250,10 @@ class XyWorkbookWriter(_BaseWorkbookWriter):
             # write Y values
             worksheet.write(offset, 1, series.name)
             worksheet.write_column(offset + 1, 1, series.y_values, series_num_format)
+            # write data labels
+            if any(series.labels):
+                worksheet.write(offset, 2, "Label")
+                worksheet.write_column(offset + 1, 2, series.labels, chart_num_format)
 
 
 class BubbleWorkbookWriter(XyWorkbookWriter):
@@ -249,6 +270,23 @@ class BubbleWorkbookWriter(XyWorkbookWriter):
         top_row = self.series_table_row_offset(series) + 2
         bottom_row = top_row + len(series) - 1
         return "Sheet1!$C$%d:$C$%d" % (top_row, bottom_row)
+
+    def labels_ref(self, series):
+        """
+        The Excel worksheet reference to the range containing the labels
+        for *series* (not including the column heading cell).
+        """
+        top_row = self.series_table_row_offset(series) + 2
+        bottom_row = top_row + len(series) - 1
+        return "Sheet1!$D$%d:$D$%d" % (top_row, bottom_row)
+
+    def label_cell_ref(self, series, idx):
+        """
+        The Excel worksheet reference to the label cell for the data point at
+        *idx* in *series*.
+        """
+        row = self.series_table_row_offset(series) + 2 + idx
+        return "Sheet1!$D$%d" % row
 
     def _populate_worksheet(self, workbook, worksheet):
         """
@@ -270,3 +308,7 @@ class BubbleWorkbookWriter(XyWorkbookWriter):
             # write bubble sizes
             worksheet.write(offset, 2, "Size")
             worksheet.write_column(offset + 1, 2, series.bubble_sizes, chart_num_format)
+            # write data labels
+            if any(series.labels):
+                worksheet.write(offset, 3, "Label")
+                worksheet.write_column(offset + 1, 3, series.labels, chart_num_format)

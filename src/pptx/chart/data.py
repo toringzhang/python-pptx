@@ -698,6 +698,20 @@ class XyChartData(_BaseChartData):
         self.append(series_data)
         return series_data
 
+    def labels_ref(self, series):
+        """
+        The Excel worksheet reference to the labels for *series* (not
+        including the column label).
+        """
+        return self._workbook_writer.labels_ref(series)
+
+    def label_cell_ref(self, series, idx):
+        """
+        The Excel worksheet reference to the label cell for the data point at
+        *idx* in *series*.
+        """
+        return self._workbook_writer.label_cell_ref(series, idx)
+
     @lazyproperty
     def _workbook_writer(self):
         """
@@ -752,14 +766,37 @@ class XySeriesData(_BaseSeriesData):
     points are not automatically sorted into increasing order by X value.
     """
 
-    def add_data_point(self, x, y, number_format=None):
+    def add_data_point(self, x, y, number_format=None, label=None):
         """
         Return an XyDataPoint object newly created with values *x* and *y*,
         and appended to this sequence.
         """
-        data_point = XyDataPoint(self, x, y, number_format)
+        data_point = XyDataPoint(self, x, y, number_format, label)
         self.append(data_point)
         return data_point
+
+    @property
+    def labels(self):
+        """
+        A sequence containing the label of each datapoint in this series,
+        in data point order.
+        """
+        return [dp.label for dp in self._data_points]
+
+    @property
+    def labels_ref(self):
+        """
+        The Excel worksheet reference to the labels for this chart (not
+        including the column heading).
+        """
+        return self._chart_data.labels_ref(self)
+
+    def label_cell_ref(self, idx):
+        """
+        The Excel worksheet reference to the label cell for the data point at
+        *idx*.
+        """
+        return self._chart_data.label_cell_ref(self, idx)
 
 
 class BubbleSeriesData(XySeriesData):
@@ -774,13 +811,13 @@ class BubbleSeriesData(XySeriesData):
     identifier and can only be retrieved by index.
     """
 
-    def add_data_point(self, x, y, size, number_format=None):
+    def add_data_point(self, x, y, size, number_format=None, label=None):
         """
         Append a new BubbleDataPoint object having the values *x*, *y*, and
         *size*. The optional *number_format* is used to format the Y value.
         If not provided, the number format is inherited from the series data.
         """
-        data_point = BubbleDataPoint(self, x, y, size, number_format)
+        data_point = BubbleDataPoint(self, x, y, size, number_format, label)
         self.append(data_point)
         return data_point
 
@@ -826,10 +863,18 @@ class XyDataPoint(_BaseDataPoint):
     of the datapoint.
     """
 
-    def __init__(self, series_data, x, y, number_format):
+    def __init__(self, series_data, x, y, number_format, label=None):
         super(XyDataPoint, self).__init__(series_data, number_format)
         self._x = x
         self._y = y
+        self._label = label
+
+    @property
+    def label(self):
+        """
+        The label for this XY data point.
+        """
+        return self._label if self._label is not None else ""
 
     @property
     def x(self):
@@ -852,8 +897,8 @@ class BubbleDataPoint(XyDataPoint):
     size values of the datapoint.
     """
 
-    def __init__(self, series_data, x, y, size, number_format):
-        super(BubbleDataPoint, self).__init__(series_data, x, y, number_format)
+    def __init__(self, series_data, x, y, size, number_format, label=None):
+        super(BubbleDataPoint, self).__init__(series_data, x, y, number_format, label)
         self._size = size
 
     @property

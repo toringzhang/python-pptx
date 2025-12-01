@@ -1206,6 +1206,7 @@ class _XyChartXmlWriter(_BaseChartXmlWriter):
                 "{tx_xml}"
                 "{spPr_xml}"
                 "{marker_xml}"
+                "{dLbls_xml}"
                 "{xVal_xml}"
                 "{yVal_xml}"
                 '          <c:smooth val="0"/>\n'
@@ -1217,6 +1218,7 @@ class _XyChartXmlWriter(_BaseChartXmlWriter):
                     "tx_xml": xml_writer.tx_xml,
                     "spPr_xml": self._spPr_xml,
                     "marker_xml": self._marker_xml,
+                    "dLbls_xml": xml_writer.dLbls_xml,
                     "xVal_xml": xml_writer.xVal_xml,
                     "yVal_xml": xml_writer.yVal_xml,
                 }
@@ -1637,6 +1639,55 @@ class _XySeriesXmlWriter(_BaseSeriesXmlWriter):
     """
 
     @property
+    def dLbls(self):
+        """
+        Return the ``<c:dLbls>`` element for this series as an oxml
+        element.
+        """
+        xml = self._dLbls_xml(nsdecls=" %s" % nsdecls("c"))
+        if not xml:
+            return None
+        return parse_xml(xml)
+
+    @property
+    def dLbls_xml(self):
+        return self._dLbls_xml()
+
+    def _dLbls_xml(self, nsdecls=""):
+        labels = self._series.labels
+        if not any(labels):
+            return ""
+
+        xml = "          <c:dLbls%s>\n" % nsdecls
+        for idx, label in enumerate(labels):
+            if not label:
+                continue
+            xml += (
+                "            <c:dLbl>\n"
+                '              <c:idx val="%d"/>\n'
+                "              <c:tx>\n"
+                "                <c:strRef>\n"
+                "                  <c:f>%s</c:f>\n"
+                "                  <c:strCache>\n"
+                '                    <c:ptCount val="1"/>\n'
+                '                    <c:pt idx="0">\n'
+                "                      <c:v>%s</c:v>\n"
+                "                    </c:pt>\n"
+                "                  </c:strCache>\n"
+                "                </c:strRef>\n"
+                "              </c:tx>\n"
+                '              <c:showLegendKey val="0"/>\n'
+                '              <c:showVal val="0"/>\n'
+                '              <c:showCatName val="0"/>\n'
+                '              <c:showSerName val="0"/>\n'
+                '              <c:showPercent val="0"/>\n'
+                '              <c:showBubbleSize val="0"/>\n'
+                "            </c:dLbl>\n"
+            ) % (idx, self._series.label_cell_ref(idx), escape(str(label)))
+        xml += "          </c:dLbls>\n"
+        return xml
+
+    @property
     def xVal(self):
         """
         Return the ``<c:xVal>`` element for this series as an oxml element.
@@ -1832,9 +1883,16 @@ class _XySeriesXmlRewriter(_BaseSeriesXmlRewriter):
         ser._remove_tx()
         ser._remove_xVal()
         ser._remove_yVal()
+        if hasattr(ser, "_remove_dLbls"):
+            ser._remove_dLbls()
 
         xml_writer = _XySeriesXmlWriter(series_data)
 
         ser._insert_tx(xml_writer.tx)
+
+        dLbls = xml_writer.dLbls
+        if dLbls is not None:
+            ser._insert_dLbls(dLbls)
+
         ser._insert_xVal(xml_writer.xVal)
         ser._insert_yVal(xml_writer.yVal)

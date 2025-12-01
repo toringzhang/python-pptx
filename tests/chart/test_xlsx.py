@@ -343,6 +343,11 @@ class DescribeBubbleWorkbookWriter(object):
         workbook_writer._populate_worksheet(workbook_, worksheet_)
         assert worksheet_.mock_calls == expected_calls
 
+    def it_can_populate_a_worksheet_with_chart_data_and_labels(self, populate_labels_fixture):
+        workbook_writer, workbook_, worksheet_, expected_calls = populate_labels_fixture
+        workbook_writer._populate_worksheet(workbook_, worksheet_)
+        assert worksheet_.mock_calls == expected_calls
+
     # fixtures -------------------------------------------------------
 
     @pytest.fixture
@@ -371,6 +376,26 @@ class DescribeBubbleWorkbookWriter(object):
         ]
         return workbook_writer, workbook_, worksheet_, expected_calls
 
+    @pytest.fixture
+    def populate_labels_fixture(self, workbook_, worksheet_):
+        chart_data = BubbleChartData()
+        series_1 = chart_data.add_series("Series 1")
+        series_1.add_data_point(1, 1.1, 10, label='A')
+        series_1.add_data_point(2, 2.2, 20, label='B')
+
+        workbook_writer = BubbleWorkbookWriter(chart_data)
+
+        expected_calls = [
+            call.write_column(1, 0, [1, 2], ANY),
+            call.write(0, 1, "Series 1"),
+            call.write_column(1, 1, [1.1, 2.2], ANY),
+            call.write(0, 2, "Size"),
+            call.write_column(1, 2, [10, 20], ANY),
+            call.write(0, 3, "Label"),
+            call.write_column(1, 3, ['A', 'B'], ANY),
+        ]
+        return workbook_writer, workbook_, worksheet_, expected_calls
+
     # fixture components ---------------------------------------------
 
     @pytest.fixture
@@ -387,6 +412,11 @@ class DescribeXyWorkbookWriter(object):
 
     def it_can_populate_a_worksheet_with_chart_data(self, populate_fixture):
         workbook_writer, workbook_, worksheet_, expected_calls = populate_fixture
+        workbook_writer._populate_worksheet(workbook_, worksheet_)
+        assert worksheet_.mock_calls == expected_calls
+
+    def it_can_populate_a_worksheet_with_chart_data_and_labels(self, populate_labels_fixture):
+        workbook_writer, workbook_, worksheet_, expected_calls = populate_labels_fixture
         workbook_writer._populate_worksheet(workbook_, worksheet_)
         assert worksheet_.mock_calls == expected_calls
 
@@ -411,6 +441,24 @@ class DescribeXyWorkbookWriter(object):
             call.write_column(5, 0, [3, 4], ANY),
             call.write(4, 1, "Series 2"),
             call.write_column(5, 1, [3.3, 4.4], ANY),
+        ]
+        return workbook_writer, workbook_, worksheet_, expected_calls
+
+    @pytest.fixture
+    def populate_labels_fixture(self, workbook_, worksheet_):
+        chart_data = XyChartData()
+        series_1 = chart_data.add_series("Series 1")
+        series_1.add_data_point(1, 1.1, label='A')
+        series_1.add_data_point(2, 2.2, label='B')
+
+        workbook_writer = XyWorkbookWriter(chart_data)
+
+        expected_calls = [
+            call.write_column(1, 0, [1, 2], ANY),
+            call.write(0, 1, "Series 1"),
+            call.write_column(1, 1, [1.1, 2.2], ANY),
+            call.write(0, 2, "Label"),
+            call.write_column(1, 2, ['A', 'B'], ANY),
         ]
         return workbook_writer, workbook_, worksheet_, expected_calls
 

@@ -1,6 +1,7 @@
 /build/
 .cache
 .coverage
+.venv/
 /.tox/
 /src/*.egg-info
 *.pyc
